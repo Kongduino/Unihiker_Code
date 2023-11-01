@@ -102,8 +102,8 @@ Before
 ![After](Assets/After.jpg)
 After
 
-
-
+### Update
+There's a very convenient [text-only web page](https://www.hko.gov.hk/textonly/v2/forecast/text_readings_e.htm) by the HKO that gives various data points from their local stations. The closest station to my home is actually very close, so their MSL measurement is probably quite accurate for me. On startup, the code will try to load the page, and if it succeeds, extract the MSL for my hood.
 
 
 

@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import time
+import time, requests, re
 from os import path, remove
 from unihiker import GUI
 from pinpong.board import Board, I2C
@@ -8,7 +8,22 @@ Board("UNIHIKER").begin()
 w = GUI()
 bme = BME280(0x76)
 leftPos = 50
+url = "https://www.hko.gov.hk/textonly/v2/forecast/text_readings_e.htm"
 MSL = 101300
+try:
+  r = requests.get(url)
+  s = r.text
+  t = s.split('(hPa)')
+  t = t[1].split('10-Minute Mean Visibility')
+  s = t[0].strip().replace('\n\n', '\n')
+  t = re.sub('  +', '\t', s).split('\n')
+  for s in t:
+    if s.startswith('Wetland'):
+      u = s.split('\t')
+      MSL = int(float(u[1])*100)
+      print(f'Found it! {MSL/100} HPa')
+except:
+  pass
 
 while True:
   w.clear()
