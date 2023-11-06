@@ -40,21 +40,6 @@ def get680data(cjmcu):
   Pa = cjmcu.data.pressure
   press = Pa/100
 
-#i2c = I2C(0)
-#rslt = None
-#w.draw_text(text="Scanning...", x = 10, y = 150, font_size=14, color="#FF0000")
-#while rslt == None:
-#  rslt = i2c.obj.scan()
-
-#ln = len(rslt)
-#s = ""
-#if ln>1:
-#  s = "s"
-
-#w.draw_text(text=f"Scanning... done!", x = 10, y = 150, font_size=14, color="#0000FF")
-#w.draw_text(text=f"{ln} device{s} found.", x = 10, y = 170, font_size=14, color="#0000FF")
-
-#if rslt.count(0x76) > 0:
 posY = 150
 try:
   bme280 = BME280(0x76)
