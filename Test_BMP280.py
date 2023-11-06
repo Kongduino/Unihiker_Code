@@ -35,6 +35,7 @@ def get280data(obj):
   press = int(Pa)/100
 
 def get680data(cjmcu):
+  global temp, humi, Pa, press
   temp = cjmcu.data.temperature
   humi = cjmcu.data.humidity
   Pa = cjmcu.data.pressure
