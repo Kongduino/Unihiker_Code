@@ -4,28 +4,116 @@ from os import path, remove
 from unihiker import GUI
 from pinpong.board import Board, I2C
 from pinpong.libs.dfrobot_bme280 import BME280
+from pinpong.libs.dfrobot_bme680 import DFRobot_BME680
+
 Board("UNIHIKER").begin()
 w = GUI()
-bme = BME280(0x76)
-leftPos = 50
-url = "https://www.hko.gov.hk/textonly/v2/forecast/text_readings_e.htm"
-MSL = 101300
+w.clear()
+w.draw_text(text="Loading...", x = 61, y = 111, font_size=18, color="#FFcccc")
+w.draw_text(text="Loading...", x = 60, y = 110, font_size=18, color="#FF0000")
+
+class Enviro:
+  getData = None
+  obj = None
+  name = None
+
+temp = 0
+humi = 0
+Pa = 0
+press = 0
+bme280 = None
+bme680 = None
+sensors = []
+
+def get280data(obj):
+  global temp, humi, Pa, press
+  temp = obj.temp_c()
+  humi = obj.humidity()
+  Pa = obj.press_pa()
+  temp = int(temp * 100)/100
+  humi = int(humi * 100)/100
+  press = int(Pa)/100
+
+def get680data(cjmcu):
+  temp = cjmcu.data.temperature
+  humi = cjmcu.data.humidity
+  Pa = cjmcu.data.pressure
+  press = Pa/100
+
+#i2c = I2C(0)
+#rslt = None
+#w.draw_text(text="Scanning...", x = 10, y = 150, font_size=14, color="#FF0000")
+#while rslt == None:
+#  rslt = i2c.obj.scan()
+
+#ln = len(rslt)
+#s = ""
+#if ln>1:
+#  s = "s"
+
+#w.draw_text(text=f"Scanning... done!", x = 10, y = 150, font_size=14, color="#0000FF")
+#w.draw_text(text=f"{ln} device{s} found.", x = 10, y = 170, font_size=14, color="#0000FF")
+
+#if rslt.count(0x76) > 0:
+posY = 150
 try:
-  r = requests.get(url)
-  s = r.text
-  t = s.split('(hPa)')
-  t = t[1].split('10-Minute Mean Visibility')
-  s = t[0].strip().replace('\n\n', '\n')
-  t = re.sub('  +', '\t', s).split('\n')
-  for s in t:
-    if s.startswith('Wetland'):
-      u = s.split('\t')
-      MSL = int(float(u[1])*100)
-      print(f'Found it! {MSL/100} HPa')
+  bme280 = BME280(0x76)
+  enviro280 = Enviro()
+  enviro280.getData = get280data
+  enviro280.obj = bme280
+  enviro280.name = "BME280"
+  sensors.append(enviro280)
+  w.draw_text(text="* BME280", x = 10, y = posY, font_size=13, color="#0000FF")
 except:
   pass
 
+posY += 20
+
+try:
+  bme680 = DFRobot_BME680()
+  enviro680 = Enviro()
+  enviro680.getData = get680data
+  enviro680.obj = bme680
+  enviro680.name = "BME680"
+  sensors.append(enviro680)
+  w.draw_text(text="* BME680", x = 10, y = posY, font_size=13, color="#0000FF")
+except:
+  pass
+
+posY += 20
+
+sensorCount = len(sensors)
+currentSensor = 0
+
+leftPos = 50
+url = "https://www.hko.gov.hk/textonly/v2/forecast/text_readings_e.htm"
+MSL = 101300
+
+def getMSL():
+  global MSL
+  try:
+    r = requests.get(url)
+    s = r.text
+    t = s.split('(hPa)')
+    t = t[1].split('10-Minute Mean Visibility')
+    s = t[0].strip().replace('\n\n', '\n')
+    t = re.sub('  +', '\t', s).split('\n')
+    for s in t:
+      if s.startswith('Wetland'):
+        u = s.split('\t')
+        MSL = int(float(u[1])*100)
+        print(f'Found it! {MSL/100} HPa')
+  except:
+    pass
+
+getMSL()
+lastCheck = int(time.time())-30 # seconds
+
 while True:
+  timeNow = int(time.time()) # seconds
+  if timeNow - lastCheck > 300: #300 s = 5 mn
+    getMSL()
+    lastCheck = timeNow
   w.clear()
   if path.isfile("MSL.txt"):
     f = open("MSL.txt")
@@ -35,15 +123,14 @@ while True:
     MSL = int(float(MSL)*100)
     f.close()
     remove("MSL.txt")
-  temp = bme.temp_c()
-  humi = bme.humidity()
-  Pa = bme.press_pa()
-  temp = int(temp * 100)/100
-  humi = int(humi * 100)/100
-  press = int(Pa)/100
+  sensor = sensors[currentSensor]
+  sensor.getData(sensor.obj)
+  w.draw_text(text=sensor.name, x = 80, y = 10, font_size=18, color="#FF0000")
+  w.draw_text(text=sensor.name, x = 81, y = 11, font_size=18, color="#FF0000")
+  currentSensor += 1
+  if currentSensor == sensorCount:
+    currentSensor = 0
   print(f"Temperature: {temp}° C, Humidity: {humi}%, Pressure: {press}")
-  w.draw_text(text="BMP280", x = 80, y = 10, font_size=18, color="#FF0000")
-  w.draw_text(text="BMP280", x = 81, y = 11, font_size=18, color="#FF0000")
   
   txt = f"T: {temp} C"
   clr = "#008b8b" # Normal

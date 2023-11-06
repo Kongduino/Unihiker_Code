@@ -102,10 +102,13 @@ Before
 ![After](Assets/After.jpg)
 After
 
-### Update
+### Updates
+
+#### HKO
 There's a very convenient [text-only web page](https://www.hko.gov.hk/textonly/v2/forecast/text_readings_e.htm) by the HKO that gives various data points from their local stations. The closest station to my home is actually very close, so their MSL measurement is probably quite accurate for me. On startup, the code will try to load the page, and if it succeeds, extract the MSL for my hood.
 
-
+#### Enviro class
+I abstracted the collection and display of data. On startup, the code looks for a BME280 and a BME680. If any of these are found, it is added to a list of `sensors`, ie `Enviro` instances, with the proper function, name and object. So if you decide to add / use other environment sensors, there will be little work required.
 
 
 
