@@ -74,7 +74,7 @@ This is also a big annoyance, for 2 reasons.
 * `P0` is often used on Micro:bit baseboards (including some of your baseboards) for the buzzer. OOPS.
 * `P3` is often not exposed on Micro:bit baseboards (including some of your baseboards). OOPS again. :-)
 
-I have three Micro:board baseboards. One by DFRobot, one by Elecfreaks, and one by a random company, Yahboom.
+I have three Micro:boit baseboards. One by DFRobot, one by Elecfreaks, and one by a random company, Yahboom.
 
 ![DFRobot](assets/DFRobot.jpg)
 ![Elecfreaks](assets/Elecfreaks.jpg)
