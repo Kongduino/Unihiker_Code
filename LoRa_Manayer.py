@@ -1,10 +1,14 @@
 #!/usr/bin/python3
 import serial, time, sys, requests, re, json, binascii
-from os import path, remove, listdir
+from os import path, remove, listdir, system
 from unihiker import GUI
-from pinpong.board import Board, I2C
-from pinpong.libs.dfrobot_bme280 import BME280
-from pinpong.libs.dfrobot_bme680 import DFRobot_BME680
+from pinpong.board import Board
+
+hasLEDs = 4
+if hasLEDs > 0:
+  from pinpong.board import Pin, NeoPixel
+  NEOPIXEL_PIN = Pin.P12 # change this if appropriate
+  PIXELS_NUM = hasLEDs # four LEDs in my case
 
 scrollBuffer = []
 screenOFF = False
@@ -17,8 +21,12 @@ myFreq = 863.0
 myBWs = [7.8, 10.4, 15.63, 20.83, 31.25, 41.67, 62.5, 125, 250, 500]
 
 Board("UNIHIKER").begin()
+if hasLEDs > 0:
+  np = NeoPixel(Pin(NEOPIXEL_PIN), PIXELS_NUM)
+  np[0] = (0, 0, 255)
 w = GUI()
 w.clear()
+system(f"brightness 70")
 w.draw_text(text="Loading...", x = 61, y = 91, font_size=18, color="#FFcccc")
 w.draw_text(text="Loading...", x = 60, y = 90, font_size=18, color="#FF0000")
 posY = 131
@@ -40,7 +48,12 @@ if Found == False:
   print(txt)
   w.draw_text(text=txt, x = 11, y = posY+1, font_size=12, color="#3333FF")
   w.draw_text(text=txt, x = 10, y = posY, font_size=12, color="#3333FF")
+  if hasLEDs > 0:
+    np[0] = (255, 0, 0)
   sys.exit()
+
+if hasLEDs > 0:
+  np[0] = (0, 255, 0)
 ss = serial.Serial(fp, 115200)
 
 def logSys(txt):
@@ -201,6 +214,7 @@ def drawBlackScreen():
 
 def screenON():
   global screenOFF
+  system(f"brightness 70")
   print("Screen on!")
   screenOFF = False
   drawMainMenu()
@@ -237,7 +251,15 @@ drawMainMenu()
 
 lastInteraction = time.time()
 buffer = ''
+led1 = 255
+if hasLEDs > 0:
+  np[0] = (0, 127, 0)
 while True:
+  if hasLEDs > 0:
+    np[1] = (0, 0, led1)
+    led1 -= 1
+    if led1 == -1:
+      led1 = 255
   n = ss.in_waiting
   while n > 0:
     incoming = ss.read(n).replace(b'\r', b'')
@@ -266,6 +288,13 @@ while True:
             scrollBuffer.append(s)
           else:
             if t == 'incoming':
+              if hasLEDs > 0:
+                for i in range(0, hasLEDs):
+                  np[i] = (0, 255, 0)
+                time.sleep(1)
+                for i in range(1, hasLEDs):
+                  np[i] = (0, 0, 0)
+                np[0] = (0, 127, 0)
               m = binascii.a2b_base64(m)
               try:
                 obj = json.loads(m)
@@ -297,7 +326,13 @@ while True:
     if time.time() - eraseStatus > 5:
       logSys("")
       eraseStatus = -1
-  if time.time() - lastInteraction > 120 and screenOFF == False:
+  tt = time.time()
+  if int((tt - lastInteraction)/10) == 6 and screenOFF == False:
+    system(f"brightness 40")
+  elif int((tt - lastInteraction)/10) == 9 and screenOFF == False:
+    system(f"brightness 30")
+  elif tt - lastInteraction > 120 and screenOFF == False:
     # turn screen off, or as close as can be.
+    system("brightness 10")
     print("Screen off!")
     drawBlackScreen()
