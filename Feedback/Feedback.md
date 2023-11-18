@@ -82,7 +82,7 @@ I have three Micro:board baseboards. One by DFRobot, one by Elecfreaks, and one 
 
 With the 2 baseboards that have `P3`, I couldn't get UART to work because `P0` is the buzzer. And on the Elecfreaks, I can't get to `P3` anyway...
 
-So we should have a way to customize the UART pins. And ideally, we should have a Micro:bit baseboard "Made for Unihiker". Like the Yahboom above, with UART, I2c, SPI ports. Note the addition of a 18650 battery slot, which is very useful.
+So we should have a way to customize the UART pins. And ideally, we should have a Micro:bit baseboard "Made for Unihiker". Like the Yahboom above, with UART, I2C, SPI ports. Note the addition of a 18650 battery slot, which is very useful.
 
 ### Side note about the 18650
 
